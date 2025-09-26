@@ -1,0 +1,27 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Data and models (keep raw out of git if large)
+data/interim/*
+data/processed/*
+models/*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VSCode
+.vscode/

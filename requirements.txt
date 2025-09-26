@@ -1,0 +1,17 @@
+# Core
+pandas
+numpy
+scikit-learn
+jupyter
+matplotlib
+plotly
+joblib
+pydantic>=2
+# App
+fastapi
+uvicorn[standard]
+streamlit
+# Optional (uncomment if you want)
+# xgboost
+# lightgbm
+# catboost
