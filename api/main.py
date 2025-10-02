@@ -3,31 +3,39 @@ from pydantic import BaseModel
 from joblib import load
 import pandas as pd
 
-app = FastAPI(title='Storm Damage Predictor API')
-model = None
+app = FastAPI()
 
-class StormEvent(BaseModel):
+# Load artifacts
+model = None
+preprocessor = None
+
+class EventInput(BaseModel):
     event_type: str
     state: str
     month: int
     season: str
-    magnitude: float | None = None
-    magnitude_type: str | None = None
-    begin_lat: float | None = None
-    begin_lon: float | None = None
+    magnitude: float
+    magnitude_type: str
+    begin_lat: float
+    begin_lon: float
 
-@app.on_event('startup')
-def load_model():
-    global model
-    model = load('models/storm_damage_model.joblib')
+@app.on_event("startup")
+def load_artifacts():
+    global model, preprocessor
+    model = load("models/storm_damage_model.joblib")
+    preprocessor = load("data/interim/feature_preprocessor.joblib")
 
-@app.get('/health')
+@app.get("/health")
 def health():
-    return {'status': 'ok'}
+    return {"status": "ok"}
 
-@app.post('/predict')
-def predict(e: StormEvent):
-    assert model is not None, 'Model not loaded'
-    X = pd.DataFrame([e.dict()])
-    y = model.predict(X)[0]
-    return {'predicted_damage_property': float(y)}
+@app.post("/predict")
+def predict(data: EventInput):
+    input_dict = data.dict()
+    df = pd.DataFrame([input_dict])
+
+    # Apply preprocessing (OneHotEncoder + Imputation)
+    X = preprocessor.transform(df)
+
+    pred = model.predict(X)[0]
+    return {"predicted_damage": float(pred)}
