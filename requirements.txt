@@ -12,6 +12,7 @@ fastapi
 uvicorn[standard]
 streamlit
 # Optional (uncomment if you want)
-# xgboost
+xgboost
 # lightgbm
 # catboost
+seaborn
