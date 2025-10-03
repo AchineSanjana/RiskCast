@@ -139,14 +139,14 @@ with st.form('form'):
 if submit:
     with st.spinner("Processing prediction model..."):
         payload = {
-            "EVENT_TYPE": event_type,
-            "STATE": state,
-            "MONTH": int(month),
-            "SEASON": season,
-            "MAGNITUDE": float(magnitude),
-            "MAGNITUDE_TYPE": magnitude_type or None,
-            "BEGIN_LAT": float(begin_lat),
-            "BEGIN_LON": float(begin_lon),
+            "event_type": event_type.upper(),
+            "state": state.upper(),
+            "month": int(month),
+            "season": season.upper(),
+            "magnitude": float(magnitude),
+            "magnitude_type": magnitude_type.upper() if magnitude_type else None,
+            "begin_lat": float(begin_lat),
+            "begin_lon": float(begin_lon)
         }
         try:
             r = requests.post("http://127.0.0.1:8000/predict", json=payload, timeout=15)
