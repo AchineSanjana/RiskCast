@@ -178,3 +178,11 @@ if submit:
 
         except Exception as e:
             st.error(f"Error: {str(e)}")
+
+# Footer
+st.markdown("""
+    <div class="footer">
+        <p>Powered by Advanced Machine Learning Algorithms | Historical Weather Data Analysis</p>
+        <p>This system provides estimates only. Always follow official weather warnings and emergency management guidelines.</p>
+    </div>
+""", unsafe_allow_html=True)

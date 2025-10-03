@@ -31,8 +31,8 @@ def predict(data: dict):
 
         # Handle both single-output and multi-output
         if isinstance(pred, (list, np.ndarray)) and len(pred) == 2:
-            property_damage = float(pred[0])
-            crop_damage = float(pred[1])
+            property_damage = max(0.0(float(pred[0])))
+            crop_damage = max(0.0(float(pred[1])))
         else:
             property_damage = float(pred)
             crop_damage = 0.0
