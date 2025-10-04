@@ -91,11 +91,37 @@ st.markdown("""
         color: white;
         text-align: center;
     }
+    .info-card h3 {
+        color: white !important;
+        font-size: 1.1rem !important;
+        font-weight: 500 !important;
+        margin-bottom: 0.5rem !important;
+    }
+    .info-card p {
+        font-size: 0.9rem;
+        opacity: 0.8;
+        margin: 0;
+    }
+    .input-label {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 0.95rem;
+        margin-bottom: 0.3rem;
+        display: block;
+    }
+    .footer {
+        text-align: center;
+        color: rgba(255, 255, 255, 0.6);
+        padding: 2rem 1rem;
+        font-size: 0.85rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        margin-top: 3rem;
+    }
     </style>
 """, unsafe_allow_html=True)
 
 st.title('RISKCAST')
-st.markdown('<center><p class="subtitle">Storm Damage Cost Predictor</p></center>', unsafe_allow_html=True)
+st.markdown('<center><p class="subtitle">USA Storm Damage Cost Predictor</p></center>', unsafe_allow_html=True)
 
 # Info section
 st.markdown("""
@@ -119,22 +145,59 @@ with st.form('form'):
     col1, col2 = st.columns(2)
 
     with col1:
-        event_type = st.selectbox("Event Type", ['Hail', 'Thunderstorm Wind', 'Tornado', 'Flood', 'Winter Storm'])
-        state = st.text_input("State (e.g. TEXAS)")
-        month = st.slider("Month", 1, 12, 6)
+        st.markdown('<span class="input-label">Event Type</span>', unsafe_allow_html=True)
+        event_type = st.selectbox("Event Type", ['Hail', 'Thunderstorm Wind', 'Tornado', 'Flood', 'Winter Storm'], label_visibility="collapsed")
+        
+        st.markdown('<span class="input-label">State</span>', unsafe_allow_html=True)
+        states_list = ['ALABAMA', 'ALASKA', 'AMERICAN SAMOA', 'ARIZONA', 'ARKANSAS', 'ATLANTIC NORTH', 
+                       'ATLANTIC SOUTH', 'CALIFORNIA', 'COLORADO', 'CONNECTICUT', 'DELAWARE', 
+                       'DISTRICT OF COLUMBIA', 'E PACIFIC', 'FLORIDA', 'GEORGIA', 'GUAM', 
+                       'GULF OF MEXICO', 'HAWAII', 'IDAHO', 'ILLINOIS', 'INDIANA', 'IOWA', 'KANSAS', 
+                       'KENTUCKY', 'LAKE ERIE', 'LAKE HURON', 'LAKE MICHIGAN', 'LAKE ONTARIO', 
+                       'LAKE ST CLAIR', 'LAKE SUPERIOR', 'LOUISIANA', 'MAINE', 'MARYLAND', 
+                       'MASSACHUSETTS', 'MICHIGAN', 'MINNESOTA', 'MISSISSIPPI', 'MISSOURI', 'MONTANA', 
+                       'NEBRASKA', 'NEVADA', 'NEW HAMPSHIRE', 'NEW JERSEY', 'NEW MEXICO', 'NEW YORK', 
+                       'NORTH CAROLINA', 'NORTH DAKOTA', 'OHIO', 'OKLAHOMA', 'OREGON', 'PENNSYLVANIA', 
+                       'PUERTO RICO', 'RHODE ISLAND', 'SOUTH CAROLINA', 'SOUTH DAKOTA', 'TENNESSEE', 
+                       'TEXAS', 'UTAH', 'VERMONT', 'VIRGINIA', 'WASHINGTON', 'WEST VIRGINIA', 
+                       'WISCONSIN', 'WYOMING']
+        state = st.selectbox("State", states_list, label_visibility="collapsed")
+        
+        st.markdown('<span class="input-label">Month</span>', unsafe_allow_html=True)
+        month = st.slider("Month", 1, 12, 6, label_visibility="collapsed")
 
     with col2:
-        season = st.selectbox("Season", ['DJF', 'MAM', 'JJA', 'SON'])
-        magnitude = st.number_input("Magnitude", value=0.0)
-        magnitude_type = st.selectbox("Magnitude Type", ['', 'EG', 'ES', 'MS', 'MG'])
+        
+        
+        st.markdown('<span class="input-label">Magnitude (Optional)</span>', unsafe_allow_html=True)
+        magnitude = st.number_input("Magnitude", value=0.0, label_visibility="collapsed")
+        
+        col_label, col_icon = st.columns([0.9, 0.1])
+        with col_label:
+            st.markdown('<span class="input-label">Magnitude Type</span>', unsafe_allow_html=True)
+        with col_icon:
+            with st.popover("ℹ️"):
+                st.markdown("""
+                **Magnitude Type Definitions:**
+                - **EG** = Wind Estimated Gust
+                - **ES** = Estimated Sustained Wind
+                - **MS** = Measured Sustained Wind
+                - **MG** = Measured Wind Gust
+                
+                *Note: No magnitude is included for instances of hail.*
+                """)
+        magnitude_type = st.selectbox("Magnitude Type", ['', 'EG', 'ES', 'MS', 'MG'], label_visibility="collapsed")
 
     col3, col4 = st.columns(2)
     with col3:
-        begin_lat = st.number_input("Latitude", value=0.0, format="%.4f")
+        st.markdown('<span class="input-label">Latitude</span>', unsafe_allow_html=True)
+        begin_lat = st.number_input("Latitude", value=0.0, format="%.4f", label_visibility="collapsed")
     with col4:
-        begin_lon = st.number_input("Longitude", value=0.0, format="%.4f")
+        st.markdown('<span class="input-label">Longitude</span>', unsafe_allow_html=True)
+        begin_lon = st.number_input("Longitude", value=0.0, format="%.4f", label_visibility="collapsed")
 
-    submit = st.form_submit_button("Generate Prediction", use_container_width=True)
+    st.markdown("<br>", unsafe_allow_html=True)
+    submit = st.form_submit_button("Generate Prediction", use_container_width=True, type="primary")
 
 if submit:
     with st.spinner("Processing prediction model..."):
@@ -142,7 +205,6 @@ if submit:
             "event_type": event_type.upper(),
             "state": state.upper(),
             "month": int(month),
-            "season": season.upper(),
             "magnitude": float(magnitude),
             "magnitude_type": magnitude_type.upper() if magnitude_type else None,
             "begin_lat": float(begin_lat),
