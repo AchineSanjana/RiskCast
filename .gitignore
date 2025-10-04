@@ -15,9 +15,9 @@ env/
 .ipynb_checkpoints/
 
 # Data and models (keep raw out of git if large)
-data/interim/*
-data/processed/*
-models/*
+#data/interim/*
+#data/processed/*
+#models/*
 
 # OS files
 .DS_Store
