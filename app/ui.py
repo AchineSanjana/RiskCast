@@ -1,7 +1,20 @@
 import streamlit as st
 import requests
+import pandas as pd
+import joblib
 
 st.set_page_config(page_title='Storm Damage Predictor', layout='wide', page_icon='⚡')
+
+@st.cache_resource
+def load_model():
+    try:
+        model = joblib.load("models/storm_damage_model.joblib")
+        return model
+    except Exception as e:
+        st.error(f"Error loading model: {e}")
+        return None
+
+model = load_model()
 
 # CSS styling
 st.markdown(""" 
