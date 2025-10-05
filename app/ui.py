@@ -1,10 +1,16 @@
 import streamlit as st
-import requests
 import pandas as pd
+import numpy as np
 import joblib
 
+# ---------------------------
+# PAGE CONFIG
+# ---------------------------
 st.set_page_config(page_title='Storm Damage Predictor', layout='wide', page_icon='⚡')
 
+# ---------------------------
+# LOAD MODEL
+# ---------------------------
 @st.cache_resource
 def load_model():
     try:
@@ -16,8 +22,10 @@ def load_model():
 
 model = load_model()
 
-# CSS styling
-st.markdown(""" 
+# ---------------------------
+# STYLING
+# ---------------------------
+st.markdown("""
     <style>
     .stApp {
         background: linear-gradient(180deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
@@ -133,10 +141,15 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+# ---------------------------
+# HEADER
+# ---------------------------
 st.title('RISKCAST')
 st.markdown('<center><p class="subtitle">USA Storm Damage Cost Predictor</p></center>', unsafe_allow_html=True)
 
-# Info section
+# ---------------------------
+# INFO CARDS
+# ---------------------------
 st.markdown("""
     <div class="info-grid">
         <div class="info-card">
@@ -154,37 +167,37 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
+# ---------------------------
+# FORM (unchanged)
+# ---------------------------
 with st.form('form'):
     col1, col2 = st.columns(2)
-
     with col1:
         st.markdown('<span class="input-label">Event Type</span>', unsafe_allow_html=True)
         event_type = st.selectbox("Event Type", ['Hail', 'Thunderstorm Wind', 'Tornado', 'Flood', 'Winter Storm'], label_visibility="collapsed")
-        
+
         st.markdown('<span class="input-label">State</span>', unsafe_allow_html=True)
-        states_list = ['ALABAMA', 'ALASKA', 'AMERICAN SAMOA', 'ARIZONA', 'ARKANSAS', 'ATLANTIC NORTH', 
-                       'ATLANTIC SOUTH', 'CALIFORNIA', 'COLORADO', 'CONNECTICUT', 'DELAWARE', 
-                       'DISTRICT OF COLUMBIA', 'E PACIFIC', 'FLORIDA', 'GEORGIA', 'GUAM', 
-                       'GULF OF MEXICO', 'HAWAII', 'IDAHO', 'ILLINOIS', 'INDIANA', 'IOWA', 'KANSAS', 
-                       'KENTUCKY', 'LAKE ERIE', 'LAKE HURON', 'LAKE MICHIGAN', 'LAKE ONTARIO', 
-                       'LAKE ST CLAIR', 'LAKE SUPERIOR', 'LOUISIANA', 'MAINE', 'MARYLAND', 
-                       'MASSACHUSETTS', 'MICHIGAN', 'MINNESOTA', 'MISSISSIPPI', 'MISSOURI', 'MONTANA', 
-                       'NEBRASKA', 'NEVADA', 'NEW HAMPSHIRE', 'NEW JERSEY', 'NEW MEXICO', 'NEW YORK', 
-                       'NORTH CAROLINA', 'NORTH DAKOTA', 'OHIO', 'OKLAHOMA', 'OREGON', 'PENNSYLVANIA', 
-                       'PUERTO RICO', 'RHODE ISLAND', 'SOUTH CAROLINA', 'SOUTH DAKOTA', 'TENNESSEE', 
-                       'TEXAS', 'UTAH', 'VERMONT', 'VIRGINIA', 'WASHINGTON', 'WEST VIRGINIA', 
+        states_list = ['ALABAMA', 'ALASKA', 'AMERICAN SAMOA', 'ARIZONA', 'ARKANSAS', 'ATLANTIC NORTH',
+                       'ATLANTIC SOUTH', 'CALIFORNIA', 'COLORADO', 'CONNECTICUT', 'DELAWARE',
+                       'DISTRICT OF COLUMBIA', 'E PACIFIC', 'FLORIDA', 'GEORGIA', 'GUAM',
+                       'GULF OF MEXICO', 'HAWAII', 'IDAHO', 'ILLINOIS', 'INDIANA', 'IOWA', 'KANSAS',
+                       'KENTUCKY', 'LAKE ERIE', 'LAKE HURON', 'LAKE MICHIGAN', 'LAKE ONTARIO',
+                       'LAKE ST CLAIR', 'LAKE SUPERIOR', 'LOUISIANA', 'MAINE', 'MARYLAND',
+                       'MASSACHUSETTS', 'MICHIGAN', 'MINNESOTA', 'MISSISSIPPI', 'MISSOURI', 'MONTANA',
+                       'NEBRASKA', 'NEVADA', 'NEW HAMPSHIRE', 'NEW JERSEY', 'NEW MEXICO', 'NEW YORK',
+                       'NORTH CAROLINA', 'NORTH DAKOTA', 'OHIO', 'OKLAHOMA', 'OREGON', 'PENNSYLVANIA',
+                       'PUERTO RICO', 'RHODE ISLAND', 'SOUTH CAROLINA', 'SOUTH DAKOTA', 'TENNESSEE',
+                       'TEXAS', 'UTAH', 'VERMONT', 'VIRGINIA', 'WASHINGTON', 'WEST VIRGINIA',
                        'WISCONSIN', 'WYOMING']
         state = st.selectbox("State", states_list, label_visibility="collapsed")
-        
+
         st.markdown('<span class="input-label">Month</span>', unsafe_allow_html=True)
         month = st.slider("Month", 1, 12, 6, label_visibility="collapsed")
 
     with col2:
-        
-        
         st.markdown('<span class="input-label">Magnitude (Optional)</span>', unsafe_allow_html=True)
         magnitude = st.number_input("Magnitude", value=0.0, label_visibility="collapsed")
-        
+
         col_label, col_icon = st.columns([0.9, 0.1])
         with col_label:
             st.markdown('<span class="input-label">Magnitude Type</span>', unsafe_allow_html=True)
@@ -196,7 +209,6 @@ with st.form('form'):
                 - **ES** = Estimated Sustained Wind
                 - **MS** = Measured Sustained Wind
                 - **MG** = Measured Wind Gust
-                
                 *Note: No magnitude is included for instances of hail.*
                 """)
         magnitude_type = st.selectbox("Magnitude Type", ['', 'EG', 'ES', 'MS', 'MG'], label_visibility="collapsed")
@@ -212,34 +224,32 @@ with st.form('form'):
     st.markdown("<br>", unsafe_allow_html=True)
     submit = st.form_submit_button("Generate Prediction", use_container_width=True, type="primary")
 
-if submit:
+# ---------------------------
+# PREDICTION LOGIC (LOCAL)
+# ---------------------------
+if submit and model:
     with st.spinner("Processing prediction model..."):
-        payload = {
-            "event_type": event_type.upper(),
-            "state": state.upper(),
-            "month": int(month),
-            "magnitude": float(magnitude),
-            "magnitude_type": magnitude_type.upper() if magnitude_type else None,
-            "begin_lat": float(begin_lat),
-            "begin_lon": float(begin_lon)
-        }
-        try:
-            r = requests.post("http://127.0.0.1:8000/predict", json=payload, timeout=15)
-            r.raise_for_status()
-            res = r.json()
+        input_df = pd.DataFrame([{
+            "EVENT_TYPE": event_type.upper(),
+            "STATE": state.upper(),
+            "MONTH": int(month),
+            "MAGNITUDE": float(magnitude),
+            "MAGNITUDE_TYPE": magnitude_type.upper() if magnitude_type else None,
+            "BEGIN_LAT": float(begin_lat),
+            "BEGIN_LON": float(begin_lon)
+        }])
 
-            property_damage = res["property_damage"]
-            crop_damage = res["crop_damage"]
-            total_damage = res["total_damage"]
+        try:
+            preds = model.predict(input_df)[0]
+            property_damage = max(0, float(preds[0]))
+            crop_damage = max(0, float(preds[1]))
+            total_damage = property_damage + crop_damage
 
             st.markdown("---")
             col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("Property Damage", f"${property_damage:,.0f}")
-            with col2:
-                st.metric("Crop Damage", f"${crop_damage:,.0f}")
-            with col3:
-                st.metric("Total Damage", f"${total_damage:,.0f}")
+            col1.metric("Property Damage", f"${property_damage:,.0f}")
+            col2.metric("Crop Damage", f"${crop_damage:,.0f}")
+            col3.metric("Total Damage", f"${total_damage:,.0f}")
 
             # Severity
             if total_damage > 1_000_000:
@@ -252,9 +262,11 @@ if submit:
                 st.success("✅ LOW RISK: Minimal damage expected")
 
         except Exception as e:
-            st.error(f"Error: {str(e)}")
+            st.error(f"Prediction failed: {str(e)}")
 
-# Footer
+# ---------------------------
+# FOOTER
+# ---------------------------
 st.markdown("""
     <div class="footer">
         <p>Powered by Advanced Machine Learning Algorithms | Historical Weather Data Analysis</p>
